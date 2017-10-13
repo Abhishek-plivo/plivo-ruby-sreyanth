@@ -62,12 +62,14 @@ module Plivo
 
     def expected_type?(param_name, expected_types, param_value)
       return true if expected_types.nil?
+      param_value_class = param_value.class
+      param_value_class = Integer if [Fixnum, Bignum].include? param_value_class
       if expected_types.is_a? Array
-        return true if expected_types.include? param_value.class
+        return true if expected_types.include? param_value_class
         raise_invalid_request("#{param_name}: Expected one of #{expected_types}"\
           " but received #{param_value.class} instead")
       else
-        return true if expected_types == param_value.class
+        return true if expected_types == param_value_class
         raise_invalid_request("#{param_name}: Expected a #{expected_types}"\
           " but received #{param_value.class} instead")
       end
