@@ -1,3 +1,7 @@
+require 'openssl'
+require 'base64'
+require 'uri'
+
 module Plivo
   # Utils module
   module Utils
@@ -5,6 +9,34 @@ module Plivo
 
     def valid_account?(account_id, raise_directly = false)
       valid_subaccount?(account_id, raise_directly) || valid_mainaccount?(account_id, raise_directly)
+    end
+
+    def validate_signature?(uri, nonce, signature, auth_token='')
+      """
+        Validates requests made by Plivo to your servers.
+        :param uri: Your server URL
+        :param nonce: X-Plivo-Signature-V2-Nonce
+        :param signature: X-Plivo-Signature-V2 header
+        :param auth_token: Plivo Auth token
+        :return: True if the request matches signature, False otherwise
+      """
+        auth_token = auth_token.encode('utf-8')
+        nonce = nonce.encode('utf-8')
+        signature = signature.encode('utf-8')
+        parsed_uri = URI.parse(uri)
+        base_url = ''
+        if parsed_uri.scheme == 'http'
+          base_url = URI::HTTP.build({:host => parsed_uri.host,:path => parsed_uri.path }).to_s
+        else
+          base_url = URI::HTTPS.build({:host => parsed_uri.host,:path => parsed_uri.path }).to_s
+        end
+        digest = OpenSSL::Digest::SHA256.new
+        hmac = OpenSSL::HMAC.new(auth_token, digest)
+        hmac << base_url
+        hmac << nonce
+        mac = hmac.digest
+        authentication_string = Base64.encode64(mac)
+        return authentication_string.strip == signature
     end
 
     # @param [String] account_id
