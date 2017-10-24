@@ -25,10 +25,10 @@ module Plivo
         signature = signature.encode('utf-8')
         parsed_uri = URI.parse(uri)
         base_url = ''
-        if parsed_uri.scheme == 'http'
-          base_url = URI::HTTP.build({:host => parsed_uri.host,:path => parsed_uri.path }).to_s
-        else
+        if parsed_uri.scheme == 'https'
           base_url = URI::HTTPS.build({:host => parsed_uri.host,:path => parsed_uri.path }).to_s
+        else
+          base_url = URI::HTTP.build({:host => parsed_uri.host,:path => parsed_uri.path }).to_s
         end
         digest = OpenSSL::Digest::SHA256.new
         hmac = OpenSSL::HMAC.new(auth_token, digest)
